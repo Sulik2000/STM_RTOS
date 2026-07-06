@@ -1,5 +1,6 @@
 #include <stdint.h>
 #include "isr_routine.h"
+#include "log.h"
 #include "main.h"
 
 extern uint32_t _estack; 
@@ -29,8 +30,12 @@ void Load_BSS(){
 }
 
 void Reset_Handler(void){
+    init_log_system();
     Load_Data();
+    log_message("Data section loaded.\r\n");
+
     Load_BSS();
+    log_message("BSS section cleared.\r\nEntering main function...\r\n");
    
     main();
     while(1){}
