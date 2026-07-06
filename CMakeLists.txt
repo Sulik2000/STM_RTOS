@@ -44,16 +44,21 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     Core/Src/startup.c
     Core/Src/main.c
     Core/Src/isr_routine.c
+    Core/Src/drivers/usart2.c
+    Core/Src/log.c
 )
 
 # Add project symbols (macros)
 target_compile_definitions(${CMAKE_PROJECT_NAME} PRIVATE
     # Add user defined symbols
+    STM32F411xE
 )
 
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
     # Add user defined include directories
     Core/Inc
+    Drivers/CMSIS/Device/ST/STM32F4xx/Include
+    Drivers/CMSIS/Include
 )
 
 # Remove wrong libob.a library dependency when using cpp files
