@@ -1,0 +1,21 @@
+{
+    "build" : {
+        "dockerfile": "../Dockerfile",
+        "context": ".."
+    },
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "ms-vscode.cpptools",
+                "twxi.cmake-tools",
+                "mcu-debug.debug-tracker-vscode",
+                "marus25.cortex-debug"
+            ]
+        }
+    },
+    "runArgs": [
+        "--privileged",
+        "-v", "/dev/bus/usb:/dev/bus/usb"
+    ],
+    "forwardPorts": [3000]
+}
