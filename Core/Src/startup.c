@@ -1,5 +1,7 @@
 #include <stdint.h>
+#include <stm32f411xe.h>
 #include "isr_routine.h"
+#include "drivers/dma.h"
 #include "log.h"
 #include "main.h"
 
@@ -30,13 +32,12 @@ void Load_BSS(){
 }
 
 void Reset_Handler(void){
-    init_log_system();
     Load_Data();
-    log_message("Data section loaded.\r\n");
 
     Load_BSS();
-    log_message("BSS section cleared.\r\nEntering main function...\r\n");
-   
+    
+    init_log_system();
+    log_message("System initialized successfully.\n");
     main();
     while(1){}
 }
@@ -55,4 +56,5 @@ const __attribute__((section(".isr_vector"), used)) void* vector_table[] = {
     0, // Reserved
     PendSV_Handler, // PendSV handler
     SysTick_Handler, // SysTick handler
+    [16 + DMA1_Stream6_IRQn] = DMA1_Stream6_IRQHandler, // DMA1 Stream6 interrupt handler
 };
