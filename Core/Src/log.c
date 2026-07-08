@@ -1,4 +1,5 @@
 #include "log.h"
+#include "drivers/dma.h"
 #include "drivers/usart2.h"
 
 void init_log_system() {
@@ -10,8 +11,9 @@ void init_log_system() {
     usart2_init.Mode = USART2_MODE_TX;
 
     USART2_Init(&usart2_init);
+    init_log_dma();
 }
 
 void log_message(const char* message) {
-    USART2_Transmit((char*)message, strlen(message));
+    initiate_dma_log(message);
 }

@@ -46,6 +46,8 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     Core/Src/isr_routine.c
     Core/Src/drivers/usart2.c
     Core/Src/log.c
+    Core/Src/drivers/dma.c
+    Core/Src/string.c
 )
 
 # Add project symbols (macros)
