@@ -1,0 +1,38 @@
+name: Embedded Build Pipeline
+
+on:
+  push:
+    branches: [ "develop", "master" ]
+  pull_request:
+    branches: [ "master", "develop" ]
+
+jobs:
+  building:
+    runs-on: ubuntu-latest
+
+    container:
+      image: ubuntu:22.04
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install build tools and dependencies
+        env:
+          DEBIAN_FRONTEND: noninteractive
+        run: |
+          apt-get update && apt-get install -y \
+            build-essential \
+            cmake \
+            ninja-build \
+            git \
+            openocd \
+            gcc-arm-none-eabi \
+            gdb-multiarch
+          ln -s /usr/bin/gdb-multiarch /usr/bin/arm-none-eabi-gdb
+
+      - name: Configure CMake
+        run: cmake -G Ninja --preset Release
+
+      - name: Build project
+        run: cmake --build build/Release
