@@ -17,12 +17,12 @@
             ]
         },
         {
-            "label": "Launch release program with OpenOCD(ST-Link)",
+            "label": "Launch bootloader with OpenOCD(ST-Link)",
             "type": "shell",
             "command": [
                 "cmake -G Ninja --preset Release &&",
                 "cmake --build build/Release &&",
-                "openocd -f interface/stlink.cfg -f target/stm32f4x.cfg -c \"program build/Release/st_rtos.elf verify reset exit\""
+                "openocd -f interface/stlink.cfg -f target/stm32f4x.cfg -c \"program build/Release/bootloader/STM_bootloader.elf verify reset exit\""
             ]
         }
     ]

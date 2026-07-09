@@ -1,8 +1,0 @@
-building:
-  image: ubuntu:22.04
-  stage: build
-  script:
-    - apt-get update && apt-get install -y build-essential cmake ninja-build git openocd gcc-arm-none-eabi gdb-multiarch # Install necessary build tools and dependencies
-    - ln -s /usr/bin/gdb-multiarch /usr/bin/arm-none-eabi-gdb
-    - cmake -G Ninja --preset Release
-    - cmake --build build/Release

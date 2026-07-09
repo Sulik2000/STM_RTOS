@@ -2,12 +2,12 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Cortex Debug (OpenOCD)",
+            "name": "Cortex Debug bootloader (OpenOCD)",
             "type": "cortex-debug",
             "request": "launch",
             "servertype": "openocd",
             "cwd": "${workspaceRoot}",
-            "executable": "${workspaceRoot}/build/Debug/STM_bootloader.elf",
+            "executable": "${workspaceRoot}/build/Debug/bootloader/STM_bootloader.elf",
             "device": "STM32F411RE",
             "configFiles": [
                 "interface/stlink.cfg",
