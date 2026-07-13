@@ -2,6 +2,7 @@
 #include <stm32f411xe.h>
 #include "isr_routine.h"
 #include "drivers/dma.h"
+#include "drivers/usart2.h"
 #include "log.h"
 #include "main.h"
 
@@ -37,7 +38,7 @@ void Reset_Handler(void){
     Load_BSS();
     
     init_log_system();
-    log_message("System initialized successfully.\n");
+    log_message("System initialized successfully.\r\n");
     main();
     while(1){}
 }
@@ -56,5 +57,6 @@ const __attribute__((section(".isr_vector"), used)) void* vector_table[] = {
     0, // Reserved
     PendSV_Handler, // PendSV handler
     SysTick_Handler, // SysTick handler
-    [16 + DMA1_Stream6_IRQn] = DMA1_Stream6_IRQHandler, // DMA1 Stream6 interrupt handler
+    [16 + DMA_LOG_UART_TX_IRQ] = DMA1_Stream6_IRQHandler, // DMA1 Stream6 interrupt handler
+    [16 + USART2_IRQn] = USART2_IRQHandler, // USART2 interrupt handler
 };

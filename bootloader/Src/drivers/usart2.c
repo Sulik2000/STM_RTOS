@@ -3,6 +3,11 @@
 #include "drivers/usart2.h"
 #include <stm32f411xe.h>
 
+uint16_t usart2_receive_index = 0; // Index for the receive buffer
+char usart2_receive_buffer[MAX_USART2_MESSAGE_LENGTH]; // Buffer to store received data
+
+void (*log_usart_receive_callback)(const char*, uint16_t) = 0;
+
 void USART2_Init(struct USART2_InitTypeDef *initStruct) {
     if(initStruct == 0) {
         return;
@@ -63,27 +68,49 @@ void USART2_Init(struct USART2_InitTypeDef *initStruct) {
             USART2->CR1 |= (1 << 3); // Enable transmitter
             break;
         case USART2_MODE_RX:
-            USART2->CR1 |= (1 << 2); // Enable receiver
+            USART2->CR1 |= (1 << 2) | USART_CR1_IDLEIE; // Enable receiver
             break;
         case USART2_MODE_TX_RX:
-            USART2->CR1 |= (1 << 3) | (1 << 2); // Enable both transmitter and receiver
+            USART2->CR1 |= USART_CR1_TE | USART_CR1_RE | USART_CR1_IDLEIE | USART_CR1_RXNEIE; // Activate transmitter, receiver, enable IDLE line detection interrupt, and enable RXNE interrupt
             break;
     }
-
     USART2->CR1 |= (1 << 13); // Enable USART2
+    log_usart_receive_callback = initStruct->ReceiveCallback;
+    NVIC_EnableIRQ(USART2_IRQn);
 }
 
-void USART2_Transmit(char *pData, uint16_t Size) {
-    for(uint16_t i = 0; i < Size; i++) {
-        while(!(USART2->SR & (1 << 7))); // Wait until TXE (Transmit Data Register Empty) is set
-        USART2->DR = pData[i]; // Send data
+// Legacy functions for USART2 before DMA integration
+// void USART2_Transmit(char *pData, uint16_t Size) {
+//     for(uint16_t i = 0; i < Size; i++) {
+//         while(!(USART2->SR & (1 << 7))); // Wait until TXE (Transmit Data Register Empty) is set
+//         USART2->DR = pData[i]; // Send data
+//     }
+//     while(!(USART2->SR & (1 << 6))); // Wait until TC (Transmission Complete) is set
+// }
+
+// void USART2_Receive(char *pData, uint16_t Size) {
+//     for(uint16_t i = 0; i < Size; i++) {
+//         while(!(USART2->SR & (1 << 5))); // Wait until RXNE (Read Data Register Not Empty) is set
+//         pData[i] = USART2->DR; // Read received data
+//     }
+// }
+
+void USART2_IRQHandler(void){
+    if(USART2->SR & USART_SR_RXNE) { // Check if RXNE (Read Data Register Not Empty) is set
+        char received_char = USART2->DR;
+        if(usart2_receive_index < MAX_USART2_MESSAGE_LENGTH - 1) {
+            usart2_receive_buffer[usart2_receive_index++] = received_char;
+        }
     }
-    while(!(USART2->SR & (1 << 6))); // Wait until TC (Transmission Complete) is set
-}
+    if(USART2->SR & USART_SR_IDLE) { // Check if IDLE line is detected
+        volatile uint32_t tmp; // Temporary variable to clear the IDLE flag
+        tmp = USART2->SR; // Read status register
+        tmp = USART2->DR; // Read data register to clear the IDLE flag
 
-void USART2_Receive(char *pData, uint16_t Size) {
-    for(uint16_t i = 0; i < Size; i++) {
-        while(!(USART2->SR & (1 << 5))); // Wait until RXNE (Read Data Register Not Empty) is set
-        pData[i] = USART2->DR; // Read received data
+        if(log_usart_receive_callback) {
+            usart2_receive_buffer[usart2_receive_index] = '\0'; // Null-terminate the received string
+            log_usart_receive_callback((const char*)usart2_receive_buffer, usart2_receive_index + 1);
+            usart2_receive_index = 0; // Reset the index after processing the message
+        }
     }
 }
