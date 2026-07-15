@@ -79,22 +79,6 @@ void USART2_Init(struct USART2_InitTypeDef *initStruct) {
     NVIC_EnableIRQ(USART2_IRQn);
 }
 
-// Legacy functions for USART2 before DMA integration
-// void USART2_Transmit(char *pData, uint16_t Size) {
-//     for(uint16_t i = 0; i < Size; i++) {
-//         while(!(USART2->SR & (1 << 7))); // Wait until TXE (Transmit Data Register Empty) is set
-//         USART2->DR = pData[i]; // Send data
-//     }
-//     while(!(USART2->SR & (1 << 6))); // Wait until TC (Transmission Complete) is set
-// }
-
-// void USART2_Receive(char *pData, uint16_t Size) {
-//     for(uint16_t i = 0; i < Size; i++) {
-//         while(!(USART2->SR & (1 << 5))); // Wait until RXNE (Read Data Register Not Empty) is set
-//         pData[i] = USART2->DR; // Read received data
-//     }
-// }
-
 void USART2_IRQHandler(void){
     if(USART2->SR & USART_SR_RXNE) { // Check if RXNE (Read Data Register Not Empty) is set
         char received_char = USART2->DR;
@@ -113,4 +97,8 @@ void USART2_IRQHandler(void){
             usart2_receive_index = 0; // Reset the index after processing the message
         }
     }
+}
+
+void USART2_SetReceiveCallback(void (*callback)(const char* message, const uint16_t length)){
+    log_usart_receive_callback = callback;
 }

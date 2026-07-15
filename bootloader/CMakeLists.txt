@@ -12,6 +12,8 @@ target_sources(STM_bootloader PRIVATE
     Src/log.c
     Src/drivers/dma.c
     Src/string.c
+    Src/drivers/flash.c
+    Src/load_fw.c
 )
 
 target_include_directories(STM_bootloader PRIVATE

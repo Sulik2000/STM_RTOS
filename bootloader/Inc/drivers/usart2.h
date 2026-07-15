@@ -34,6 +34,7 @@ struct USART2_InitTypeDef {
 void USART2_Init(struct USART2_InitTypeDef *initStruct);
 void USART2_Transmit(char *pData, uint16_t Size);
 void USART2_Receive(char *pData, uint16_t Size);
+void USART2_SetReceiveCallback(void (*callback)(const char* message, const uint16_t length));
 
 void USART2_IRQHandler(void);
 
