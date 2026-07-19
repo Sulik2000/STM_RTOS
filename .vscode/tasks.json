@@ -1,29 +1,113 @@
 {
     "tasks": [
         {
-            "label": "Building release binary",
-            "type": "shell",
-            "command": [
-                "cmake -G Ninja --preset Release &&",
-                "cmake --build build/Release"
-            ]
-        },
-        {
-            "label": "Building debug binary",
-            "type": "shell",
-            "command": [
-                "cmake -G Ninja --preset Debug &&",
-                "cmake --build build/Debug"
-            ]
-        },
-        {
             "label": "Launch bootloader with OpenOCD(ST-Link)",
             "type": "shell",
             "command": [
-                "cmake -G Ninja --preset Release &&",
-                "cmake --build build/Release &&",
-                "openocd -f interface/stlink.cfg -f target/stm32f4x.cfg -c \"program build/Release/bootloader/STM_bootloader.elf verify reset exit\""
+                "openocd -f interface/stlink.cfg -f target/stm32f4x.cfg -c \"program out/bootloader/Nucleo-F411RE/Release/bootloader.elf verify reset exit\""
             ]
+        },
+        {
+            "label": "CMSIS Erase",
+            "type": "shell",
+            "command": "pyocd",
+            "options": {
+                "cwd": "${workspaceFolder}/",
+                "shell": {
+                    "executable": "/bin/bash",
+                    "args": [
+                        "-c"
+                    ]
+                }
+            },
+            "args": [
+                "erase",
+                "--probe",
+                "cmsisdap:",
+                "--chip",
+                "--cbuild-run",
+                "${command:cmsis-csolution.getCbuildRunFile}"
+            ],
+            "problemMatcher": []
+        },
+        {
+            "label": "CMSIS Load",
+            "type": "shell",
+            "command": "pyocd",
+            "options": {
+                "cwd": "${workspaceFolder}/",
+                "shell": {
+                    "executable": "/bin/bash",
+                    "args": [
+                        "-c"
+                    ]
+                }
+            },
+            "args": [
+                "load",
+                "--probe",
+                "cmsisdap:",
+                "--cbuild-run",
+                "${command:cmsis-csolution.getCbuildRunFile}"
+            ],
+            "problemMatcher": []
+        },
+        {
+            "label": "CMSIS Run",
+            "type": "shell",
+            "command": "pyocd",
+            "options": {
+                "cwd": "${workspaceFolder}/",
+                "shell": {
+                    "executable": "/bin/bash",
+                    "args": [
+                        "-c"
+                    ]
+                }
+            },
+            "args": [
+                "gdbserver",
+                "--probe",
+                "cmsisdap:",
+                "--persist",
+                "--reset-run",
+                "--cbuild-run",
+                "${command:cmsis-csolution.getCbuildRunFile}",
+                "--quiet",
+                "--log",
+                "*.cbuild_run,*server=info"
+            ],
+            "problemMatcher": []
+        },
+        {
+            "label": "CMSIS Load+Run",
+            "dependsOn": [
+                "CMSIS Load",
+                "CMSIS Run"
+            ],
+            "dependsOrder": "sequence",
+            "problemMatcher": []
+        },
+        {
+            "label": "CMSIS TargetInfo",
+            "type": "shell",
+            "command": "pyocd",
+            "options": {
+                "cwd": "${workspaceFolder}/",
+                "shell": {
+                    "executable": "/bin/bash",
+                    "args": [
+                        "-c"
+                    ]
+                }
+            },
+            "args": [
+                "list",
+                "--cbuild-run",
+                "${command:cmsis-csolution.getCbuildRunFile}"
+            ],
+            "problemMatcher": []
         }
-    ]
+    ],
+    "version": "2.0.0"
 }

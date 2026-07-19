@@ -1,0 +1,24 @@
+project:
+  components:
+    - component: ARM::CMSIS:CORE
+    - component: Keil::Device:Startup
+
+  define:
+    - STM32F4xx
+  groups:
+    - group: App
+      files:
+        - file: ./Src/main.c
+        - file: ./Src/isr_routine.c
+        - file: ./Src/load_fw.c
+        - file: ./Src/log.c
+        - file: ./Src/startup.c
+        - file: ./Src/string.c
+        - file: ./Src/drivers/dma.c
+        - file: ./Src/drivers/flash.c
+        - file: ./Src/drivers/usart2.c
+
+  linker:
+    - script: ./STM32F411XX_BOOTLOADER.ld
+  add-path:
+    - ./Inc

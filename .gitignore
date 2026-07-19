@@ -2,3 +2,8 @@
 *.mxproject
 build/
 .vscode/settings.json
+stm_rtos.cbuild-idx.yml
+stm_rtos.cbuild-pack.yml
+out/
+tmp/
+.cmsis/

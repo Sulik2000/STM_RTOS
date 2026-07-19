@@ -145,7 +145,7 @@ void initiate_dma_log(const char *message)
         length = DMA_BUFFER_SIZE - 1;
     }
 
-    str_copy(dma_transfer_log_buffer, message, length + 1);
+    str_copy(dma_transfer_log_buffer, message, length);
 
     start_dma_log_transfer(length);
 }
