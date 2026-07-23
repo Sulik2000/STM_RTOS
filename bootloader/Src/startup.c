@@ -9,6 +9,7 @@
 #include "load_fw.h"
 
 extern uint32_t _estack; 
+extern uint32_t _begin_app; // Symbol defined in the linker script, representing the start of the application code
 
 void Load_Data(){
     extern uint32_t _sidata;
@@ -53,7 +54,7 @@ void Reset_Handler(void){
     Load_Data();
 
     Load_BSS();
-    
+
     init_log_system();
     log_message("System initialized successfully.\r\n");
 
@@ -64,8 +65,11 @@ void Reset_Handler(void){
         Load_FW_Flash_Start();
     } else {
         log_message("Jumping to main application.\r\n");
+        SCB->VTOR = _begin_app;
+        __set_MSP(_begin_app);
+        void (*app_reset_handler)(void) = (void (*)(void))(*((uint32_t*)(&_begin_app + 4)));
+        app_reset_handler();
     }
-    main();
     while(1){}
 }
 

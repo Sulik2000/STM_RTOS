@@ -93,7 +93,7 @@ void USART2_IRQHandler(void){
 
         if(log_usart_receive_callback) {
             usart2_receive_buffer[usart2_receive_index] = '\0'; // Null-terminate the received string
-            log_usart_receive_callback((const char*)usart2_receive_buffer, usart2_receive_index + 1);
+            log_usart_receive_callback((const char*)usart2_receive_buffer, usart2_receive_index);
             usart2_receive_index = 0; // Reset the index after processing the message
         }
     }
