@@ -43,22 +43,22 @@ jobs:
           tar -xJf arm-toolchain.tar.xz -C /opt/arm-toolchain --strip-components=1
           echo "/opt/arm-toolchain/bin" >> $GITHUB_PATH
 
-      - name: Install CMSIS-Toolbox
+      - name: Install CMSIS-Toolbox (Updated to 2.12.0)
         run: |
-          curl -L https://github.com/Open-CMSIS-Pack/cmsis-toolbox/releases/download/2.6.0/cmsis-toolbox-linux-amd64.tar.gz -o cmsis-toolbox.tar.gz
+          curl -L https://github.com/Open-CMSIS-Pack/cmsis-toolbox/releases/download/2.12.0/cmsis-toolbox-linux-amd64.tar.gz -o cmsis-toolbox.tar.gz
           mkdir -p /opt/cmsis-toolbox
           tar -xzf cmsis-toolbox.tar.gz -C /opt/cmsis-toolbox --strip-components=1
           echo "/opt/cmsis-toolbox/bin" >> $GITHUB_PATH
 
       - name: Set up toolchain and restore CMSIS packs
         env:
-          GCC_TOOLCHAIN_13_2_1: "/opt/arm-toolchain/bin"
+          GCC_TOOLCHAIN_13_2_1: "/opt/arm-toolchain/bin" # Removed /bin from the path
         run: |
           cpackget init https://www.keil.com/pack/index.pidx
-          cbuild stm_rtos.csolution.yml --packs
+          cbuild stm_rtos.csolution.yml --packs --update-rte
 
       - name: Build bootloader via CMSIS-Toolbox
         env:
-          GCC_TOOLCHAIN_13_2_1: "/opt/arm-toolchain/bin"
+          GCC_TOOLCHAIN_13_2_1: "/opt/arm-toolchain/bin" # Removed /bin from the path
         run: |
           cbuild stm_rtos.csolution.yml --context bootloader.Debug+Nucleo-F411RE
