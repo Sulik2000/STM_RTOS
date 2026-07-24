@@ -9,6 +9,11 @@ solution:
   target-types:
     - type: Nucleo-F411RE
       device: STM32F411RETx
+      target-set:
+        - set:
+          images:
+            - project-context: rtos.Debug
+            - project-context: bootloader.Debug
 
   build-types:
     - type: Debug
@@ -21,3 +26,5 @@ solution:
 
   projects:
     - project: ./bootloader/bootloader.cproject.yml
+    - project: ./rtos/rtos.cproject.yml
+  created-for: CMSIS-Toolbox@2.12.0
