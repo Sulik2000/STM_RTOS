@@ -56,12 +56,11 @@ void Reset_Handler(void){
     Load_BSS();
 
     init_log_system();
-    log_message("System initialized successfully.\r\n");
 
     init_gpio_a_clock();
     init_boot_status_pin();
+    log_message("Bootloader started. Checking boot status pin...\r\n");
     if(is_flash_mode()){
-        log_message("Entering flash mode.\r\n");
         Load_FW_Flash_Start();
     } else {
         log_message("Jumping to main application.\r\n");

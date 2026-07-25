@@ -31,7 +31,7 @@ struct USART2_InitTypeDef {
     void (*ReceiveCallback)(const char* message, const uint16_t length); // Callback function for received data
 };
 
-void USART2_Init(struct USART2_InitTypeDef *initStruct);
+void USART1_Init(struct USART2_InitTypeDef *initStruct);
 void USART2_Transmit(char *pData, uint16_t Size);
 void USART2_Receive(char *pData, uint16_t Size);
 void USART2_SetReceiveCallback(void (*callback)(const char* message, const uint16_t length));

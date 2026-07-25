@@ -12,5 +12,9 @@ project:
 
   linker:
     - script: ./STM32F411XX_RTOS.ld
+  output:
+    type:
+      - bin
+      - elf
   # add-path:
   #   - ./Inc
