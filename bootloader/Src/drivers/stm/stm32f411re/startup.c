@@ -2,11 +2,13 @@
 #include <stm32f411xe.h>
 #include "isr_routine.h"
 #include "drivers/dma.h"
-#include "drivers/usart2.h"
+#include "drivers/uart.h"
 #include "log.h"
 #include "main.h"
 #include "drivers/flash.h"
 #include "load_fw.h"
+
+#define DMA_LOG_UART_TX_IRQ DMA1_Stream6_IRQn
 
 extern uint32_t _estack; 
 extern uint32_t _begin_app; // Symbol defined in the linker script, representing the start of the application code
@@ -55,15 +57,15 @@ void Reset_Handler(void){
 
     Load_BSS();
 
-    init_log_system();
+    LOG_init();
 
     init_gpio_a_clock();
     init_boot_status_pin();
-    log_message("Bootloader started. Checking boot status pin...\r\n");
+    LOG_send("Bootloader started. Checking boot status pin...\r\n");
     if(is_flash_mode()){
         Load_FW_Flash_Start();
     } else {
-        log_message("Jumping to main application.\r\n");
+        LOG_send("Jumping to main application.\r\n");
         SCB->VTOR = _begin_app;
         __set_MSP(_begin_app);
         void (*app_reset_handler)(void) = (void (*)(void))(*((uint32_t*)(&_begin_app + 4)));
@@ -71,6 +73,9 @@ void Reset_Handler(void){
     }
     while(1){}
 }
+
+extern void DMA1_Stream6_IRQHandler(void);
+extern void USART2_IRQHandler(void);
 
 const __attribute__((section(".isr_vector"), used)) void* vector_table[] = {
     &_estack, // Initial stack pointer

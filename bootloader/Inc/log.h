@@ -9,12 +9,12 @@
 /**
  * This function initializes hardware for logging: USART2
  */
-void init_log_system();
+void LOG_init();
 
-void log_message(const char* message);
+void LOG_send(const char* message);
 
-void set_log_receive_callback(void (*callback)(const char* message, const uint16_t length));
+void LOG_set_receive_callback(void (*callback)(const char* message, const uint16_t length));
 
-uint8_t is_log_system_initialized();
+uint8_t LOG_Is_initialized();
 
 #endif // LOG_H

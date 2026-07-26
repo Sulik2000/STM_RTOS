@@ -2,22 +2,33 @@
 #include "drivers/dma.h"
 #include "string.h"
 
+#define DMA_BUFFER_SIZE 256
+#define DMA_LOG_UART_INSTANCE USART2
+#define DMA_LOG_UART_IRQ USART2_IRQn
+#define DMA_LOG_UART_TX_STREAM DMA1_Stream6
+#define DMA_LOG_UART_TX_IRQ DMA1_Stream6_IRQn
+#define DMA_LOG_UART_TX_CHANNEL DMA_SxCR_CHSEL_2 // This selects channel 4 for Stream 6
+
+#define DMA_LOG_UART_RX_STREAM DMA1_Stream5
+#define DMA_LOG_UART_RX_CHANNEL DMA_SxCR_CHSEL_2 // This selects channel 4 for Stream 5
+#define DMA_LOG_UART_RX_IRQ DMA1_Stream5_IRQn
+
 char dma_receive_buffer[DMA_BUFFER_SIZE]; // Buffer to store received data
 
 static char dma_transfer_log_buffer[DMA_BUFFER_SIZE];
 
 volatile uint8_t dma_busy_flag = 0;
 
-uint8_t is_dma_busy()
+uint8_t DMA_Is_busy()
 {
     return dma_busy_flag;
 }
 
-uint16_t get_NDTR_RX(void){
+uint16_t DMA_get_NDTR(void){
     return DMA_LOG_UART_RX_STREAM->NDTR;
 }
 
-char* get_RX_buffer(void){
+char* DMA_get_RX_buf(void){
     return dma_receive_buffer;
 }
 
@@ -40,7 +51,7 @@ void DMA1_Stream6_IRQHandler(void)
     }
 }
 
-void init_log_usart()
+void DMA_Init_registers()
 {
     RCC->AHB1ENR |= RCC_AHB1ENR_DMA1EN; // Enable DMA1 clock
     DMA_LOG_UART_INSTANCE->CR3 |= USART_CR3_DMAT | USART_CR3_DMAR; // Enable DMA for the log UART RX and TX
@@ -120,16 +131,16 @@ void start_dma_log_transfer(uint16_t length)
     enable_dma_log_out_stream();
 }
 
-void init_log_dma()
+void DMA_Init_log()
 {
+    DMA_Init_registers();
     disable_dma_log_out_stream();
-    init_log_usart();
     configure_dma_log_stream();
 }
 
-void initiate_dma_log(const char *message)
+void DMA_send_log(const char *message)
 {
-    if (is_dma_busy())
+    if (DMA_Is_busy())
     {
         return;
     }

@@ -1,14 +1,14 @@
 #define APB1_CLOCK 16000000.0 // APB1 clock frequency in Hz
 
-#include "drivers/usart2.h"
+#include "drivers/uart.h"
 #include <stm32f411xe.h>
 
 uint16_t usart2_receive_index = 0; // Index for the receive buffer
-char usart2_receive_buffer[MAX_USART2_MESSAGE_LENGTH]; // Buffer to store received data
+char usart2_receive_buffer[MAX_UART_MESSAGE_LENGTH]; // Buffer to store received data
 
 void (*log_usart_receive_callback)(const char*, uint16_t) = 0;
 
-void USART2_Init(struct USART2_InitTypeDef *initStruct) {
+void UART_Init(struct UART_InitTypeDef *initStruct) {
     if(initStruct == 0) {
         return;
     }
@@ -38,39 +38,39 @@ void USART2_Init(struct USART2_InitTypeDef *initStruct) {
     }
     
     switch(initStruct->StopBits) {
-        case USART2_STOPBITS_1:
+        case UART_STOPBITS_1:
             USART2->CR2 &= ~(3 << 12); // 1 stop bit
             break;
-        case USART2_STOPBITS_2:
+        case UART_STOPBITS_2:
             USART2->CR2 |= (2 << 12); // 2 stop bits
             break;
-        case USART2_STOPBITS_0_5:
+        case UART_STOPBITS_0_5:
             USART2->CR2 |= (1 << 12); // 0.5 stop bits
             break;
     }
 
     switch(initStruct->Parity) {
-        case USART2_PARITY_NONE:
+        case UART_PARITY_NONE:
             USART2->CR1 &= ~(1 << 10); // No parity
             break;
-        case USART2_PARITY_EVEN:
+        case UART_PARITY_EVEN:
             USART2->CR1 |= (1 << 10); // Enable parity
             USART2->CR1 &= ~(1 << 9); // Even parity
             break;
-        case USART2_PARITY_ODD:
+        case UART_PARITY_ODD:
             USART2->CR1 |= (1 << 10); // Enable parity
             USART2->CR1 |= (1 << 9); // Odd parity
             break;
     }
 
     switch(initStruct->Mode) {
-        case USART2_MODE_TX:
+        case UART_MODE_TX:
             USART2->CR1 |= (1 << 3); // Enable transmitter
             break;
-        case USART2_MODE_RX:
+        case UART_MODE_RX:
             USART2->CR1 |= (1 << 2) | USART_CR1_IDLEIE; // Enable receiver
             break;
-        case USART2_MODE_TX_RX:
+        case UART_MODE_TX_RX:
             USART2->CR1 |= USART_CR1_TE | USART_CR1_RE | USART_CR1_IDLEIE | USART_CR1_RXNEIE; // Activate transmitter, receiver, enable IDLE line detection interrupt, and enable RXNE interrupt
             break;
     }
@@ -82,7 +82,7 @@ void USART2_Init(struct USART2_InitTypeDef *initStruct) {
 void USART2_IRQHandler(void){
     if(USART2->SR & USART_SR_RXNE) { // Check if RXNE (Read Data Register Not Empty) is set
         char received_char = USART2->DR;
-        if(usart2_receive_index < MAX_USART2_MESSAGE_LENGTH - 1) {
+        if(usart2_receive_index < MAX_UART_MESSAGE_LENGTH - 1) {
             usart2_receive_buffer[usart2_receive_index++] = received_char;
         }
     }
@@ -99,6 +99,6 @@ void USART2_IRQHandler(void){
     }
 }
 
-void USART2_SetReceiveCallback(void (*callback)(const char* message, const uint16_t length)){
+void UART_SetReceiveCallback(void (*callback)(const char* message, const uint16_t length)){
     log_usart_receive_callback = callback;
 }
