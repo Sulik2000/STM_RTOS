@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-
+#ifdef STM32F4xx // Structure of Flash for STM32F4xx series
 enum Flash_Region {
     FLASH_REGION_SECTOR_0 = 0,
     FLASH_REGION_SECTOR_1 = 1,
@@ -17,6 +17,7 @@ enum Flash_Region {
     FLASH_REGION_OTP = 9,
     FLASH_REGION_OPTION_BYTES = 10
 };
+#endif
 
 enum Flash_Error {
     WRITE_PROTECTION_ERROR = 1,

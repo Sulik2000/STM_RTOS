@@ -9,14 +9,14 @@ project:
     - group: App
       files:
         - file: ./Src/main.c
-        - file: ./Src/isr_routine.c
+        - file: ./Src/drivers/stm/stm32f411re/isr_routine.c
         - file: ./Src/load_fw.c
         - file: ./Src/log.c
-        - file: ./Src/startup.c
+        - file: ./Src/drivers/stm/stm32f411re/startup.c
         - file: ./Src/string.c
-        - file: ./Src/drivers/dma.c
-        - file: ./Src/drivers/flash.c
-        - file: ./Src/drivers/usart2.c
+        - file: ./Src/drivers/stm/stm32f411re/dma.c
+        - file: ./Src/drivers/stm/stm32f411re/flash.c
+        - file: ./Src/drivers/stm/stm32f411re/uart.c
 
   linker:
     - script: ./STM32F411XX_BOOTLOADER.ld

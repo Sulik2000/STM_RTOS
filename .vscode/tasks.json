@@ -1,10 +1,29 @@
 {
     "tasks": [
         {
-            "label": "Launch bootloader with OpenOCD(ST-Link)",
+            "label": "Launch debug bootloader with OpenOCD(ST-Link)",
             "type": "shell",
             "command": [
                 "openocd -f interface/stlink.cfg -f target/stm32f4x.cfg -c \"program out/bootloader/Nucleo-F411RE/Debug/bootloader.elf verify reset exit\""
+            ]
+        },
+        {
+            "label": "Load Debug RTOS to board",
+            "type": "shell",
+            "command": [
+                "source tools/py_venv/bin/activate",
+                "python3 tools/Load_RTOS.py --file out/rtos/Nucleo-F411RE/Debug/rtos.bin --port ${input:USB_port} --baud 115200"
+            ]
+        },
+        {
+            "label": "Full Flash+Build Device Release",
+            "type": "shell",
+            "command": [
+                "cbuild stm_rtos.csolution.yml --context bootloader.Release+Nucleo-F411RE &&",
+                "cbuild stm_rtos.csolution.yml --context rtos.Release+Nucleo-F411RE &&",
+                "openocd -f interface/stlink.cfg -f target/stm32f4x.cfg -c \"program out/bootloader/Nucleo-F411RE/Release/bootloader.elf verify reset exit\" &&",
+                "source tools/py_venv/bin/activate &&",
+                "python3 tools/Load_RTOS.py --file out/rtos/Nucleo-F411RE/Release/rtos.bin --port ${input:USB_port} --baud 115200"
             ]
         },
         {
@@ -22,6 +41,14 @@
             "workspaceFolder": "${workspaceFolder}/",
             "debugClockSpeed": "auto",
             "debugPortMode": "JTAG"
+        }
+    ],
+    "inputs": [
+        {
+            "id": "USB_port",
+            "type": "promptString",
+            "description": "Port which are connected to board UART",
+            "default": "/dev/ttyUSB0"
         }
     ],
     "version": "2.0.0"

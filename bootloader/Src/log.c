@@ -1,39 +1,39 @@
 #include "log.h"
 #include "drivers/dma.h"
-#include "drivers/usart2.h"
+#include "drivers/uart.h"
 
 static uint8_t log_system_initialized = 0;
 void (*log_receive_callback)(const char* message, const uint16_t length);
 
-void set_log_receive_callback(void (*callback)(const char* message, const uint16_t length)){
+void LOG_set_receive_callback(void (*callback)(const char* message, const uint16_t length)){
     log_receive_callback = callback;
-    USART2_SetReceiveCallback(callback);
+    UART_SetReceiveCallback(callback);
 }
 
 
-void init_log_system() {
-    struct USART2_InitTypeDef usart2_init;
-    usart2_init.BaudRate = 115200;
-    usart2_init.WordLength = 8;
-    usart2_init.StopBits = USART2_STOPBITS_1;
-    usart2_init.Parity = USART2_PARITY_NONE;
-    usart2_init.Mode = USART2_MODE_TX_RX;
-    usart2_init.ReceiveCallback = log_receive_callback;
+void LOG_init() {
+    struct UART_InitTypeDef uart_init;
+    uart_init.BaudRate = 115200;
+    uart_init.WordLength = 8;
+    uart_init.StopBits = UART_STOPBITS_1;
+    uart_init.Parity = UART_PARITY_NONE;
+    uart_init.Mode = UART_MODE_TX_RX;
+    uart_init.ReceiveCallback = log_receive_callback;
 
-    USART2_Init(&usart2_init);
+    UART_Init(&uart_init);
 
-    init_log_dma();
+    DMA_Init_log();
 
     log_system_initialized = 1;
 }
 
-uint8_t is_log_system_initialized(){
+uint8_t LOG_Is_initialized(){
     return log_system_initialized;
 }
 
-void log_message(const char* message) {
-    while(is_dma_busy()) {
+void LOG_send(const char* message) {
+    while(DMA_Is_busy()) {
         // Wait for the previous DMA transfer to complete
     }
-    initiate_dma_log(message);
+    DMA_send_log(message);
 }
