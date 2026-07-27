@@ -54,7 +54,7 @@ void DMA2_Stream7_IRQHandler(void)
 void DMA_Init_registers()
 {
     RCC->AHB1ENR |= RCC_AHB1ENR_DMA2EN; // Enable DMA2 clock
-    DMA_LOG_UART_INSTANCE->CR3 |= USART_CR3_DMAT | USART_CR3_DMAR; // Enable DMA for the log UART RX and TX
+    DMA_LOG_UART_INSTANCE->CR3 |= USART_CR3_DMAT; // Enable DMA for the log UART RX and TX
 }
 
 void disable_dma_log_out_stream()
@@ -69,10 +69,6 @@ void disable_dma_log_out_stream()
 void enable_dma_log_out_stream()
 {
     DMA_LOG_UART_TX_STREAM->CR |= DMA_SxCR_EN; // Enable the DMA stream
-    while(!(DMA_LOG_UART_TX_STREAM->CR & DMA_SxCR_EN))
-    {
-        // Wait until the stream is enabled
-    }
 }
 
 void disable_dma_log_in_stream()
@@ -123,6 +119,11 @@ void start_dma_log_transfer(uint16_t length)
     {
         return;
     }
+
+    disable_dma_log_out_stream();
+
+    clear_dma2_stream7_flags();
+    DMA_LOG_UART_INSTANCE->SR &= ~USART_SR_TC;
 
     DMA_LOG_UART_TX_STREAM->NDTR = length;
     DMA_LOG_UART_TX_STREAM->M0AR = (uint32_t)dma_transfer_log_buffer;

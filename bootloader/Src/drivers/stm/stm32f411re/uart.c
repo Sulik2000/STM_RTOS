@@ -83,12 +83,6 @@ void UART_Init(struct UART_InitTypeDef *initStruct) {
 }
 
 void USART1_IRQHandler(void){
-    if(USART1->SR & USART_SR_RXNE) { // Check if RXNE (Read Data Register Not Empty) is set
-        char received_char = USART1->DR;
-        if(usart1_receive_index < MAX_UART_MESSAGE_LENGTH - 1) {
-            usart1_receive_buffer[usart1_receive_index++] = received_char;
-        }
-    }
     if(USART1->SR & USART_SR_IDLE) { // Check if IDLE line is detected
         volatile uint32_t tmp; // Temporary variable to clear the IDLE flag
         tmp = USART1->SR; // Read status register
@@ -98,6 +92,13 @@ void USART1_IRQHandler(void){
             usart1_receive_buffer[usart1_receive_index] = '\0'; // Null-terminate the received string
             log_usart_receive_callback((const char*)usart1_receive_buffer, usart1_receive_index);
             usart1_receive_index = 0; // Reset the index after processing the message
+        }
+    }
+
+    else if(USART1->SR & USART_SR_RXNE) { // Check if RXNE (Read Data Register Not Empty) is set
+        char received_char = USART1->DR;
+        if(usart1_receive_index < MAX_UART_MESSAGE_LENGTH - 1) {
+            usart1_receive_buffer[usart1_receive_index++] = received_char;
         }
     }
 }

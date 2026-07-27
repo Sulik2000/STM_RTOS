@@ -49,7 +49,7 @@ void Load_BSS(){
     }
 }
 
-void Reset_Handler(void){
+void main(void){
     Load_Data();
 
     Load_BSS();
@@ -58,14 +58,13 @@ void Reset_Handler(void){
 
     init_gpio_a_clock();
     init_boot_status_pin();
-    LOG_send("Bootloader started. Checking boot status pin...\r\n");
     if(is_flash_mode()){
         Load_FW_Flash_Start();
     } else {
-        LOG_send("Jumping to main application.\r\n");
-        SCB->VTOR = _begin_app;
-        __set_MSP(_estack);
-        void (*app_reset_handler)(void) = (void (*)(void))(*((uint32_t*)(&_begin_app + 4)));
+        __disable_irq();
+        SCB->VTOR = (uint32_t)(&_begin_app);
+        __set_MSP(*(__IO uint32_t*)&_begin_app);
+        void (*app_reset_handler)(void) = (void (*)(void))(*((uint32_t*)((&_begin_app) + 1)));
         app_reset_handler();
     }
     while(1){}
@@ -76,7 +75,7 @@ extern void USART1_IRQHandler(void);
 
 const __attribute__((section(".isr_vector"), used)) void* vector_table[] = {
     &_estack, // Initial stack pointer
-    Reset_Handler, // Reset handler
+    main, // Reset handler
     NMI_Handler, // NMI handler
     HardFault_Handler, // Hard fault handler
     MemManage_Handler, // Memory management fault handler

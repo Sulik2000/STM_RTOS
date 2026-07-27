@@ -5,7 +5,7 @@ MEMORY {
 
 SECTIONS {
   .text : {
-    KEEP(*(.isr_vector))
+    KEEP(*(.irq_vector))
     *(.text*)
     *(.rodata*)
   } > FLASH

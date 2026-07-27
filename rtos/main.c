@@ -39,7 +39,7 @@ void main(void) {
 
 }
 
-const __attribute__((section(".isr_vector"), used)) void* vector_table[] = {
+const __attribute__((section(".irq_vector"), used)) void* vector_table[] = {
     &_estack, // Initial stack pointer
     main, // Reset handler
 };
