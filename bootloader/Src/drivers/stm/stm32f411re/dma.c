@@ -3,15 +3,15 @@
 #include "string.h"
 
 #define DMA_BUFFER_SIZE 256
-#define DMA_LOG_UART_INSTANCE USART2
-#define DMA_LOG_UART_IRQ USART2_IRQn
-#define DMA_LOG_UART_TX_STREAM DMA1_Stream6
-#define DMA_LOG_UART_TX_IRQ DMA1_Stream6_IRQn
-#define DMA_LOG_UART_TX_CHANNEL DMA_SxCR_CHSEL_2 // This selects channel 4 for Stream 6
+#define DMA_LOG_UART_INSTANCE USART1
+#define DMA_LOG_UART_IRQ USART1_IRQn
+#define DMA_LOG_UART_TX_STREAM DMA2_Stream7
+#define DMA_LOG_UART_TX_IRQ DMA2_Stream7_IRQn
+#define DMA_LOG_UART_TX_CHANNEL (0b100 << 25) // This selects channel 4
 
-#define DMA_LOG_UART_RX_STREAM DMA1_Stream5
-#define DMA_LOG_UART_RX_CHANNEL DMA_SxCR_CHSEL_2 // This selects channel 4 for Stream 5
-#define DMA_LOG_UART_RX_IRQ DMA1_Stream5_IRQn
+#define DMA_LOG_UART_RX_STREAM DMA2_Stream5
+#define DMA_LOG_UART_RX_CHANNEL (0b100 << 25) // This selects channel 4
+#define DMA_LOG_UART_RX_IRQ DMA2_Stream5_IRQn
 
 char dma_receive_buffer[DMA_BUFFER_SIZE]; // Buffer to store received data
 
@@ -32,28 +32,28 @@ char* DMA_get_RX_buf(void){
     return dma_receive_buffer;
 }
 
-static void clear_dma1_stream6_flags(void)
+static void clear_dma2_stream7_flags(void)
 {
-    DMA1->HIFCR = DMA_HIFCR_CFEIF6 |
-                  DMA_HIFCR_CDMEIF6 |
-                  DMA_HIFCR_CTEIF6 |
-                  DMA_HIFCR_CHTIF6 |
-                  DMA_HIFCR_CTCIF6;
+    DMA2->HIFCR = DMA_HIFCR_CFEIF7 |
+                  DMA_HIFCR_CDMEIF7 |
+                  DMA_HIFCR_CTEIF7 |
+                  DMA_HIFCR_CHTIF7 |
+                  DMA_HIFCR_CTCIF7;
 }
 
-void DMA1_Stream6_IRQHandler(void)
+void DMA2_Stream7_IRQHandler(void)
 {
     // Check if the transfer complete interrupt flag is set
-    if (DMA1->HISR & DMA_HISR_TCIF6)
+    if (DMA2->HISR & DMA_HISR_TCIF7)
     {
-        clear_dma1_stream6_flags();
+        clear_dma2_stream7_flags();
         dma_busy_flag = 0;
     }
 }
 
 void DMA_Init_registers()
 {
-    RCC->AHB1ENR |= RCC_AHB1ENR_DMA1EN; // Enable DMA1 clock
+    RCC->AHB1ENR |= RCC_AHB1ENR_DMA2EN; // Enable DMA2 clock
     DMA_LOG_UART_INSTANCE->CR3 |= USART_CR3_DMAT | USART_CR3_DMAR; // Enable DMA for the log UART RX and TX
 }
 
@@ -109,7 +109,7 @@ static void configure_dma_log_stream(void)
                                  DMA_SxCR_TCIE | // Transfer complete interrupt enable
                                  DMA_SxCR_PL_1; // High priority
    
-    clear_dma1_stream6_flags();
+    clear_dma2_stream7_flags();
     NVIC_ClearPendingIRQ(DMA_LOG_UART_TX_IRQ);
     NVIC_EnableIRQ(DMA_LOG_UART_TX_IRQ);
 

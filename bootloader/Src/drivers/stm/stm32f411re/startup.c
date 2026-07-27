@@ -1,14 +1,11 @@
 #include <stdint.h>
 #include <stm32f411xe.h>
 #include "isr_routine.h"
-#include "drivers/dma.h"
-#include "drivers/uart.h"
 #include "log.h"
-#include "main.h"
 #include "drivers/flash.h"
 #include "load_fw.h"
 
-#define DMA_LOG_UART_TX_IRQ DMA1_Stream6_IRQn
+#define DMA_LOG_UART_TX_IRQ DMA2_Stream7_IRQn
 
 extern uint32_t _estack; 
 extern uint32_t _begin_app; // Symbol defined in the linker script, representing the start of the application code
@@ -67,15 +64,15 @@ void Reset_Handler(void){
     } else {
         LOG_send("Jumping to main application.\r\n");
         SCB->VTOR = _begin_app;
-        __set_MSP(_begin_app);
+        __set_MSP(_estack);
         void (*app_reset_handler)(void) = (void (*)(void))(*((uint32_t*)(&_begin_app + 4)));
         app_reset_handler();
     }
     while(1){}
 }
 
-extern void DMA1_Stream6_IRQHandler(void);
-extern void USART2_IRQHandler(void);
+extern void DMA2_Stream7_IRQHandler(void);
+extern void USART1_IRQHandler(void);
 
 const __attribute__((section(".isr_vector"), used)) void* vector_table[] = {
     &_estack, // Initial stack pointer
@@ -91,7 +88,7 @@ const __attribute__((section(".isr_vector"), used)) void* vector_table[] = {
     0, // Reserved
     PendSV_Handler, // PendSV handler
     SysTick_Handler, // SysTick handler
-    [16 + DMA_LOG_UART_TX_IRQ] = DMA1_Stream6_IRQHandler, // DMA1 Stream6 interrupt handler
-    [16 + USART2_IRQn] = USART2_IRQHandler, // USART2 interrupt handler
+    [16 + DMA_LOG_UART_TX_IRQ] = DMA2_Stream7_IRQHandler, // DMA1 Stream6 interrupt handler
+    [16 + USART1_IRQn] = USART1_IRQHandler, // USART2 interrupt handler
     [16 + FLASH_IRQn] = Flash_Interrupt_Handler, // Flash interrupt handler
 };
