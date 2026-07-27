@@ -8,7 +8,6 @@ project:
   groups:
     - group: App
       files:
-        - file: ./Src/main.c
         - file: ./Src/drivers/stm/stm32f411re/isr_routine.c
         - file: ./Src/load_fw.c
         - file: ./Src/log.c

@@ -8,7 +8,6 @@ void Flash_Init() {
     FLASH->KEYR = 0xCDEF89AB; // Unlock the flash memory
 
     FLASH->CR |= FLASH_CR_PSIZE_1; // Set programming size to 32 bits (32-bit word)
-    FLASH->CR |= FLASH_CR_PG; // Enable programming mode
 
     FLASH->CR |= FLASH_CR_ERRIE; // Enable error interrupt
 }
@@ -56,6 +55,9 @@ void Flash_Sector_Erase(enum Flash_Region region){
 }
 
 void Flash_Program(uint32_t address, uint32_t data){
+    FLASH->CR &= ~FLASH_CR_LOCK; // Unlock the flash memory
+    FLASH->CR |= FLASH_CR_PG; // Enable programming mode
+
     while(FLASH->SR & FLASH_SR_BSY) {
         // Wait for any ongoing flash operation to complete
         __NOP();
@@ -65,6 +67,8 @@ void Flash_Program(uint32_t address, uint32_t data){
         // Wait for the programming operation to complete
         __NOP();
     }
+    FLASH->CR &= ~FLASH_CR_PG; // Disable programming mode
+    FLASH->CR |= FLASH_CR_LOCK; // Lock the flash memory to prevent accidental writes
 }
 
 void Flash_Interrupt_Handler(void){

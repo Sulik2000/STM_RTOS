@@ -12,7 +12,7 @@ solution:
       target-set:
         - set:
           images:
-            - project-context: rtos.Debug
+            - project-context: rtos.Release
             - project-context: bootloader.Debug
 
   build-types:

@@ -11,7 +11,7 @@ uint16_t str_length(const char* str){
 
 void str_copy(char* dest, const char* src, uint16_t max_length){
     uint16_t i;
-    for(i = 0; i < max_length && src[i] != '\0'; i++){
+    for(i = 0; i < max_length; i++){
         dest[i] = src[i];
     }
 }
