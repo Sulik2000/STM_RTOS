@@ -1,29 +1,55 @@
 {
     "tasks": [
         {
-            "label": "Building release binary",
+            "label": "Launch debug bootloader with OpenOCD(ST-Link)",
             "type": "shell",
             "command": [
-                "cmake -G Ninja --preset Release &&",
-                "cmake --build build/Release"
+                "openocd -f interface/stlink.cfg -f target/stm32f4x.cfg -c \"program out/bootloader/Nucleo-F411RE/Debug/bootloader.elf verify reset exit\""
             ]
         },
         {
-            "label": "Building debug binary",
+            "label": "Load Debug RTOS to board",
             "type": "shell",
             "command": [
-                "cmake -G Ninja --preset Debug &&",
-                "cmake --build build/Debug"
+                "source tools/py_venv/bin/activate",
+                "python3 tools/Load_RTOS.py --file out/rtos/Nucleo-F411RE/Debug/rtos.bin --port ${input:USB_port} --baud 115200"
             ]
         },
         {
-            "label": "Launch release program with OpenOCD(ST-Link)",
+            "label": "Full Flash+Build Device Release",
             "type": "shell",
             "command": [
-                "cmake -G Ninja --preset Release &&",
-                "cmake --build build/Release &&",
-                "openocd -f interface/stlink.cfg -f target/stm32f4x.cfg -c \"program build/Release/st_rtos.elf verify reset exit\""
+                "cbuild stm_rtos.csolution.yml --context bootloader.Release+Nucleo-F411RE &&",
+                "cbuild stm_rtos.csolution.yml --context rtos.Release+Nucleo-F411RE &&",
+                "openocd -f interface/stlink.cfg -f target/stm32f4x.cfg -c \"program out/bootloader/Nucleo-F411RE/Release/bootloader.elf verify reset exit\" &&",
+                "source tools/py_venv/bin/activate &&",
+                "python3 tools/Load_RTOS.py --file out/rtos/Nucleo-F411RE/Release/rtos.bin --port ${input:USB_port} --baud 115200"
             ]
+        },
+        {
+            "label": "CMSIS Load+Run",
+            "problemMatcher": [],
+            "type": "arm-debugger.flash",
+            "connectionAddress": "*",
+            "connectionType": "ST-Link",
+            "programs": [
+                "${command:arm-debugger.getApplicationFiles}"
+            ],
+            "cmsisPack": "${command:cmsis-csolution.getDfpName}",
+            "deviceName": "${command:cmsis-csolution.getDeviceName}",
+            "processorName": "${command:cmsis-csolution.getProcessorName}",
+            "workspaceFolder": "${workspaceFolder}/",
+            "debugClockSpeed": "auto",
+            "debugPortMode": "JTAG"
         }
-    ]
+    ],
+    "inputs": [
+        {
+            "id": "USB_port",
+            "type": "promptString",
+            "description": "Port which are connected to board UART",
+            "default": "/dev/ttyUSB0"
+        }
+    ],
+    "version": "2.0.0"
 }

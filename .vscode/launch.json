@@ -2,19 +2,18 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Cortex Debug (OpenOCD)",
+            "name": "Cortex Debug bootloader (OpenOCD)",
             "type": "cortex-debug",
             "request": "launch",
             "servertype": "openocd",
             "cwd": "${workspaceRoot}",
-            "executable": "${workspaceRoot}/build/Debug/STM_bootloader.elf",
+            "executable": "${workspaceRoot}/out/bootloader/Nucleo-F411RE/Debug/bootloader.elf",
             "device": "STM32F411RE",
             "configFiles": [
                 "interface/stlink.cfg",
                 "target/stm32f4x.cfg"
             ],
             "gdbPath": "arm-none-eabi-gdb",
-            "preLaunchTask": "Building debug binary",
             "runToEntryPoint": "main",
             "showDevDebugOutput": "none"
         }

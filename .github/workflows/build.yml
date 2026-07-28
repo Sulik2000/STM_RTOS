@@ -1,0 +1,64 @@
+name: Embedded Build Pipeline
+
+on:
+  push:
+    branches: [ "develop", "master" ]
+  pull_request:
+    branches: [ "master", "develop" ]
+
+jobs:
+  building:
+    runs-on: ubuntu-latest
+
+    container:
+      image: ubuntu:22.04
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install system build tools
+        env:
+          DEBIAN_FRONTEND: noninteractive
+        run: |
+          apt-get update && apt-get install -y \
+            build-essential \
+            ninja-build \
+            git \
+            curl \
+            unzip \
+            xz-utils
+
+      - name: Install Modern CMake (3.27+)
+        run: |
+          curl -L https://github.com/Kitware/CMake/releases/download/v3.27.9/cmake-3.27.9-linux-x86_64.tar.gz -o cmake.tar.gz
+          mkdir -p /opt/cmake
+          tar -xzf cmake.tar.gz -C /opt/cmake --strip-components=1
+          echo "/opt/cmake/bin" >> $GITHUB_PATH
+
+      - name: Install Modern Arm GNU Toolchain (13.2)
+        run: |
+          curl -L "https://developer.arm.com/-/media/Files/downloads/gnu/13.2.rel1/binrel/arm-gnu-toolchain-13.2.rel1-x86_64-arm-none-eabi.tar.xz" -o arm-toolchain.tar.xz
+          mkdir -p /opt/arm-toolchain
+          tar -xJf arm-toolchain.tar.xz -C /opt/arm-toolchain --strip-components=1
+          echo "/opt/arm-toolchain/bin" >> $GITHUB_PATH
+
+      - name: Install CMSIS-Toolbox (Updated to 2.12.0)
+        run: |
+          curl -L https://github.com/Open-CMSIS-Pack/cmsis-toolbox/releases/download/2.12.0/cmsis-toolbox-linux-amd64.tar.gz -o cmsis-toolbox.tar.gz
+          mkdir -p /opt/cmsis-toolbox
+          tar -xzf cmsis-toolbox.tar.gz -C /opt/cmsis-toolbox --strip-components=1
+          echo "/opt/cmsis-toolbox/bin" >> $GITHUB_PATH
+
+      - name: Set up toolchain and restore CMSIS packs
+        env:
+          GCC_TOOLCHAIN_13_2_1: "/opt/arm-toolchain/bin" # Removed /bin from the path
+        run: |
+          cpackget init https://www.keil.com/pack/index.pidx
+          cbuild stm_rtos.csolution.yml --packs --update-rte
+
+      - name: Build bootloader via CMSIS-Toolbox
+        env:
+          GCC_TOOLCHAIN_13_2_1: "/opt/arm-toolchain/bin" # Removed /bin from the path
+        run: |
+          cbuild stm_rtos.csolution.yml --context bootloader.Debug+Nucleo-F411RE

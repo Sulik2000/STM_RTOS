@@ -1,0 +1,20 @@
+project:
+  components:
+    - component: ARM::CMSIS:CORE
+    - component: Keil::Device:Startup
+
+  define:
+    - STM32F4xx
+  groups:
+    - group: App
+      files:
+      - file: ./main.c
+
+  linker:
+    - script: ./STM32F411XX_RTOS.ld
+  output:
+    type:
+      - bin
+      - elf
+  # add-path:
+  #   - ./Inc
