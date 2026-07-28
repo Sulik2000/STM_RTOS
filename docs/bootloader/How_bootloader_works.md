@@ -1,4 +1,6 @@
 # How bootloader works
+To write *.bin file to the microcontroller, use Python script in `tools/Load_RTOS.py` with environment `source tools/py_venv/bin/actiate`. As example, you can build `rtos` project and try to flash it. You'll see blinking green blinking LED on Nucleo F411RE(in the future example app will be added comfortable support of different microcontrollers).
+
 1. Cause it is low-level hardware project, the first of all executes initialization of DATA and BSS memory regions.
 
 2. In start bootloader checks if bootloader status pin(for different microcontrollers it is different, in case STM32F411RE it is PA5) is HIGH
