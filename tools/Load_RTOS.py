@@ -1,4 +1,5 @@
 import sys
+from time import sleep
 import serial
 
 bytesReadySignal = 2 
@@ -53,10 +54,8 @@ with serial.Serial(port = port, baudrate = baud, timeout = 1) as ser:
         if(ser.is_open):
             print(f"File loaded successfully, total {sendedBytes} bytes sent")
             ser.write(b'\xFF\xFF\xDD\xDD') # Send signal to board to exit bootloader state
-            ser.read(2) # Wait for board to acknowledge the exit signal
-            if(ser.read(2) == b'\xDD\xFF'):
+            bytes = ser.read(4) # Wait for board to send exit bootloader state signal
+            if(bytes == b'\xFF\xFF\xDD\xDD'):
                 print("Board exited bootloader state successfully")
-                ser.setRTS(False)
             else:
-                print("Board failed to exit bootloader state")
-                ser.setRTS(False)
+                print("Board did not send exit bootloader state signal, something went wrong")
