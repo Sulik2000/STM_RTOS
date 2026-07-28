@@ -51,6 +51,8 @@ void Load_FW_Flash_Start(){
     if(!LOG_Is_initialized())
         return; // Can't proceed if the log system is not initialized
     Flash_Init();
+
+    #ifdef STM32F4xx
     Flash_Sector_Erase(FLASH_REGION_SECTOR_1); // Erase sector 1
     Flash_Sector_Erase(FLASH_REGION_SECTOR_2); // Erase sector 2
     Flash_Sector_Erase(FLASH_REGION_SECTOR_3); // Erase sector 3
@@ -58,6 +60,7 @@ void Load_FW_Flash_Start(){
     Flash_Sector_Erase(FLASH_REGION_SECTOR_5); // Erase sector 5
     Flash_Sector_Erase(FLASH_REGION_SECTOR_6); // Erase sector 6
     Flash_Sector_Erase(FLASH_REGION_SECTOR_7); // Erase sector 7
+    #endif
 
     LOG_set_receive_callback(Load_FW_Collect_Bytes);
     Load_FW_Send_Flash_Acknowledgment();
