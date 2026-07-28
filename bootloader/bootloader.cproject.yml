@@ -18,6 +18,6 @@ project:
         - file: ./Src/drivers/stm/stm32f411re/uart.c
 
   linker:
-    - script: ./STM32F411XX_BOOTLOADER.ld
+    - script: ./linker/stm/stm32f411re/STM32F411XX_BOOTLOADER.ld
   add-path:
     - ./Inc

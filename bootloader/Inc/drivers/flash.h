@@ -24,11 +24,33 @@ enum Flash_Error {
     PROGRAMMING_ERROR = 2,
 };
 
+/**
+ * Initializes the flash memory for writing. This function prepares the flash memory for programming.
+ */
 void Flash_Init();
+
+/**
+ * Erases the specified flash sector.
+ */
 void Flash_Sector_Erase(enum Flash_Region region);
+
+/**
+ * Programs a 32-bit word at the specified flash address.
+ */
 void Flash_Program(uint32_t address, uint32_t data);
+
+/**
+ * Handles flash interrupts.
+ */
 void Flash_Interrupt_Handler(void);
+/**
+ * Sets the callback function that will be called when a flash error occurs.
+ */
 void Flash_Set_Error_Callback(void (*callback)(enum Flash_Error error));
+
+/**
+ * Deinitializes the flash memory interface.
+ */
 void Flash_Deinit();
 
 #endif // DRIVERS_FLASH_H

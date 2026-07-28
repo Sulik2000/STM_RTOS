@@ -31,9 +31,24 @@ struct UART_InitTypeDef {
     void (*ReceiveCallback)(const char* message, const uint16_t length); // Callback function for received data
 };
 
+/**
+ * Initializes the UART peripheral with the specified settings.
+ */
 void UART_Init(struct UART_InitTypeDef *initStruct);
+
+/**
+ * Transmits data over the UART peripheral.
+ */
 void UART_Transmit(char *pData, uint16_t Size);
+
+/**
+ * Receives data from the UART peripheral.
+ */
 void UART_Receive(char *pData, uint16_t Size);
+
+/**
+ * Sets the callback function that will be called when data is received over UART.
+ */
 void UART_SetReceiveCallback(void (*callback)(const char* message, const uint16_t length));
 
 #endif // UART_H
