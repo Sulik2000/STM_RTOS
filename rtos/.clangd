@@ -1,5 +1,5 @@
 CompileFlags:
-  CompilationDatabase: /home/stanislav/Projects/STM_bootloader/out/rtos/Nucleo-F411RE/Debug
+  CompilationDatabase: /home/stanislav/Projects/STM_bootloader/out/rtos/Nucleo-F411RE/Release
   Add:
     - -include
-    - /home/stanislav/Projects/STM_bootloader/out/rtos/Nucleo-F411RE/Debug/compile_macros.h
+    - /home/stanislav/Projects/STM_bootloader/out/rtos/Nucleo-F411RE/Release/compile_macros.h

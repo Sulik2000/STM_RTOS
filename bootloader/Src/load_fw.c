@@ -3,22 +3,19 @@
 #include "log.h"
 #include "string.h"
 
-#define LOAD_FW_ACKNOWLEDGMENT_MESSAGE ((char[]){0xDD, 0xDD, '\0'})
-#define LOAD_FW_ERROR_MESSAGE ((char[]){0xDD, 0x01, '\0'})
-#define LOAD_FW_UPDATE_COMPLETE_MESSAGE ((char[]){0xFF, 0xFF, 0xDD, 0xDD, '\0'}) // Value which sent by the host to indicate that the firmware update is complete
-
 static uint32_t _code_counter = 0; // Counter to keep track of the number of code chunks received
 static volatile uint8_t _bytes_collected_flag = 0; // Flag to indicate if bytes have been collected
 static uint8_t _bytes[256];
 static uint16_t bytes_length = 0;
 
 void Load_FW_Update_Complete(){
-    LOG_send("Firmware update complete. Waiting on reset...\n");
+    LOG_send(LOAD_FW_UPDATE_COMPLETE_MESSAGE, LOAD_FW_UPDATE_COMPLETE_MESSAGE_LENGTH);
+    Flash_Deinit();
     _code_counter = 0; // Reset the code counter
 }
 
 void Load_FW_Send_Flash_Error(enum Flash_Error error){
-    LOG_send(LOAD_FW_ERROR_MESSAGE);
+    LOG_send(LOAD_FW_ERROR_MESSAGE, LOAD_FW_ERROR_MESSAGE_LENGTH);
 }
 
 void Load_FW_Collect_Bytes(const char* message, const uint16_t length){
@@ -38,11 +35,11 @@ void Load_FW_Write_Code_Chunks(const char* message, const uint16_t length){
 }
 
 void Load_FW_Send_Flash_Acknowledgment(){
-    LOG_send(LOAD_FW_ACKNOWLEDGMENT_MESSAGE);
+    LOG_send(LOAD_FW_ACKNOWLEDGMENT_MESSAGE, LOAD_FW_ACKNOWLEDGMENT_MESSAGE_LENGTH);
 }
 
 void Load_FW_Receive_Code_Chunks(const char* message, const uint16_t length){
-    if(length == str_length(LOAD_FW_UPDATE_COMPLETE_MESSAGE) && str_cmp(message, LOAD_FW_UPDATE_COMPLETE_MESSAGE, str_length(LOAD_FW_UPDATE_COMPLETE_MESSAGE))){
+    if(length == LOAD_FW_UPDATE_COMPLETE_MESSAGE_LENGTH && str_cmp(message, LOAD_FW_UPDATE_COMPLETE_MESSAGE, LOAD_FW_UPDATE_COMPLETE_MESSAGE_LENGTH)){
         Load_FW_Update_Complete();
         return;
     }
@@ -56,7 +53,7 @@ void Load_FW_Flash_Start(){
     Flash_Init();
     Flash_Sector_Erase(FLASH_REGION_SECTOR_1); // Erase sector 1
     Flash_Sector_Erase(FLASH_REGION_SECTOR_2); // Erase sector 2
-    Flash_Sector_Erase(FLASH_REGION_SECTOR_3); // Erase sector
+    Flash_Sector_Erase(FLASH_REGION_SECTOR_3); // Erase sector 3
     Flash_Sector_Erase(FLASH_REGION_SECTOR_4); // Erase sector 4
     Flash_Sector_Erase(FLASH_REGION_SECTOR_5); // Erase sector 5
     Flash_Sector_Erase(FLASH_REGION_SECTOR_6); // Erase sector 6

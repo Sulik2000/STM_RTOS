@@ -55,7 +55,6 @@ void Flash_Sector_Erase(enum Flash_Region region){
 }
 
 void Flash_Program(uint32_t address, uint32_t data){
-    FLASH->CR &= ~FLASH_CR_LOCK; // Unlock the flash memory
     FLASH->CR |= FLASH_CR_PG; // Enable programming mode
 
     while(FLASH->SR & FLASH_SR_BSY) {
@@ -68,7 +67,6 @@ void Flash_Program(uint32_t address, uint32_t data){
         __NOP();
     }
     FLASH->CR &= ~FLASH_CR_PG; // Disable programming mode
-    FLASH->CR |= FLASH_CR_LOCK; // Lock the flash memory to prevent accidental writes
 }
 
 void Flash_Interrupt_Handler(void){
@@ -89,4 +87,8 @@ void Flash_Interrupt_Handler(void){
 
 void Flash_Set_Error_Callback(void (*callback)(enum Flash_Error error)){
     flash_error_callback = callback;
+}
+
+void Flash_Deinit(){
+    FLASH->CR |= FLASH_CR_LOCK; // Lock the flash memory to prevent accidental writes
 }

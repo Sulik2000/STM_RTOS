@@ -29,5 +29,6 @@ void Flash_Sector_Erase(enum Flash_Region region);
 void Flash_Program(uint32_t address, uint32_t data);
 void Flash_Interrupt_Handler(void);
 void Flash_Set_Error_Callback(void (*callback)(enum Flash_Error error));
+void Flash_Deinit();
 
 #endif // DRIVERS_FLASH_H

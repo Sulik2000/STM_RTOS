@@ -139,15 +139,9 @@ void DMA_Init_log()
     configure_dma_log_stream();
 }
 
-void DMA_send_log(const char *message)
+void DMA_send_log(const char *message, uint16_t length)
 {
-    if (DMA_Is_busy())
-    {
-        return;
-    }
-
-    uint16_t length = str_length(message);
-    if (length == 0)
+    if (DMA_Is_busy() || length == 0)
     {
         return;
     }
