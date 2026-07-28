@@ -7,7 +7,7 @@ void DMA_Init_log();
 
 uint8_t DMA_Is_busy();
 
-void DMA_send_log(const char* message);
+void DMA_send_log(const char *message, uint16_t length);
 
 uint16_t DMA_get_NDTR(void);
 

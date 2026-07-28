@@ -31,9 +31,9 @@ uint8_t LOG_Is_initialized(){
     return log_system_initialized;
 }
 
-void LOG_send(const char* message) {
+void LOG_send(const char* message, uint16_t length) {
     while(DMA_Is_busy()) {
         // Wait for the previous DMA transfer to complete
     }
-    DMA_send_log(message);
+    DMA_send_log(message, length);
 }

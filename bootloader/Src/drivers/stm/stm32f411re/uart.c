@@ -89,7 +89,6 @@ void USART1_IRQHandler(void){
         tmp = USART1->DR; // Read data register to clear the IDLE flag
 
         if(log_usart_receive_callback) {
-            usart1_receive_buffer[usart1_receive_index] = '\0'; // Null-terminate the received string
             log_usart_receive_callback((const char*)usart1_receive_buffer, usart1_receive_index);
             usart1_receive_index = 0; // Reset the index after processing the message
         }
@@ -97,7 +96,7 @@ void USART1_IRQHandler(void){
 
     else if(USART1->SR & USART_SR_RXNE) { // Check if RXNE (Read Data Register Not Empty) is set
         char received_char = USART1->DR;
-        if(usart1_receive_index < MAX_UART_MESSAGE_LENGTH - 1) {
+        if(usart1_receive_index < MAX_UART_MESSAGE_LENGTH) {
             usart1_receive_buffer[usart1_receive_index++] = received_char;
         }
     }

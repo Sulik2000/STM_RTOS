@@ -11,7 +11,7 @@
  */
 void LOG_init();
 
-void LOG_send(const char* message);
+void LOG_send(const char* message, uint16_t length);
 
 void LOG_set_receive_callback(void (*callback)(const char* message, const uint16_t length));
 
