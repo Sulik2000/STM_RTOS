@@ -1,126 +1,158 @@
-# STM_RTOS: Microkernel RTOS & Bootloader Ecosystem
+# Custom Bare-Metal STM32F411RE Bootloader
 
-An open-source, highly decoupled microkernel Real-Time Operating System (RTOS) and secure Bootloader ecosystem designed for ARM Cortex-M4 microcontrollers. Developed strictly in C99 and Assembly using **CMSIS** and **STM32 LL (Low-Layer) Drivers**—completely bypassing heavy HAL abstractions. 
+![Platform](https://img.shields.io/badge/Platform-STM32F411RE-blue.svg)
+![Architecture](https://img.shields.io/badge/Architecture-ARM%20Cortex--M4-orange.svg)
+![Toolchain](https://img.shields.io/badge/Toolchain-Arm%20GNU%20Toolchain%20%2F%20CMSIS--Build-green.svg)
+![License](https://img.shields.io/badge/License-MIT-lightgrey.svg)
 
-This project is actively developed and tested on the **STMicroelectronics Nucleo-F411RE** development board.
+A bare-metal, custom bootloader written completely from scratch for the **STM32F411RE** microcontroller (NUCLEO-F411RE board). 
 
----
-
-## 🗺️ Architectural Concept & Philosophy
-
-STM_RTOS breaks away from standard monolithic firmware design by physically and logically cutting the system into three completely isolated binary applications: **Bootloader**, **RTOS Microkernel**, and **User Application**.
-
-```text
-+------------------------------------------------------------+
-|                        FLASH MEMORY                        |
-+--------------------+-------------------+-------------------+
-|     Bootloader     |   RTOS Kernel     |  User Application |
-|   (0x08000000)     |   (0x08004000)    |   (0x08010000)    |
-+--------------------+-------------------+-------------------+
-|                    ^                   ^
-| Relocates VTOR     |                   |
-+--------------------+ Calls Kernels     |
-| via SVC           |
-+-------------------+
-```
-
-### 1. Bootloader & Vector Table Relocation (`VTOR`)
-Upon reset, the MCU boots into the Bootloader (`0x08000000`). The bootloader prepares the system, fires up low-level DMA logging, checks image validities, and handles FOTA updates. Before jumping to the OS, it updates the `SCB->VTOR` register to target the RTOS Kernel's dedicated vector table, executing a clean handoff.
-
-### 2. Microkernel & Context Switching
-The RTOS Kernel resides in its own flash memory segment. It manages a priority-based scheduler, explicit task stacks, and interrupt mechanics (`SysTick`, `PendSV`). Execution boundaries are strictly enforced.
-
-### 3. Asynchronous Binary Isolation & Late Binding
-The User Application is compiled 100% independently from the kernel. The kernel has **zero compiled-in knowledge** of application symbols or memory positions. 
-* The application image leaves a fixed structural header at its base address containing its cryptographic signatures and an explicit entry pointer (`app_main`).
-* At runtime, the RTOS reads this memory offset dynamically, creates the user process context, and boots it.
-* User code *never* invokes kernel functions directly; communication happens strictly via Hardware **SVC (Supervisor Call)** routines.
+This project was built without relying on high-level HAL/LL libraries, pre-packaged vendor linker scripts, or pre-configured NVIC vector tables. Everything—from the memory layout and startup code to peripheral drivers (UART, DMA, Internal Flash) and the host-side UART Python loading script—was implemented manually to demonstrate deep low-level firmware architecture skills.
 
 ---
 
-## 📂 Repository Structure
+## 🌟 Highlights & Key Features
+
+- **100% Bare-Metal & Custom Linker Script**: Custom-written `.ld` script (`STM32F411XX_BOOTLOADER.ld`) establishing precise memory mapping for the bootloader and main application sections.
+- **Custom Peripheral Drivers**:
+  - **UART Driver**: Register-level driver for serial communication and status reporting.
+  - **DMA Driver**: High-throughput automated memory/peripheral transfer for incoming binary payloads.
+  - **Internal Flash Driver**: Sector erasure, unlock/lock routines, and page programming routines.
+- **Custom Interrupts & Vector Table**: Custom startup sequence, exception handlers (`isr_routine.c`), and manual interrupt controller management.
+- **Host-Side Python Flasher**: Includes `Load_RTOS.py`, a utility to stream RTOS/Application binary images directly into microcontroller Flash over serial UART.
+- **VS Code Build Automation**: Automated build workflows using VS Code tasks integrated with `bootloader.cproject.yml` (CMSIS-CSolution format).
+- **Verified on Hardware**: Fully validated on physical **STM32 NUCLEO-F411RE** hardware.
+
+---
+
+## 📁 Directory Structure
 
 ```text
-.
-├── bootloader/                     # Independent Bootloader Binary Target
-│   ├── Inc/
-│   │   ├── drivers/
-│   │   │   ├── dma.h               # Bare-metal DMA control structures
-│   │   │   └── usart2.h            # USART2 Register level interfaces
-│   │   ├── isr_routine.h           # Interrupt Vector Table hooks
-│   │   ├── log.h                   # Non-blocking DMA logger interface
-│   │   ├── main.h
-│   │   └── string.h                # Custom, lightweight safe string manipulation
-│   ├── Src/
-│   │   ├── drivers/                # Low-level hardware drivers 
-│   │   │   ├── dma.c
-│   │   │   └── usart2.c
-│   │   ├── isr_routine.c           # Vector Table ISR implementations
-│   │   ├── log.c                   # High-speed UART-DMA logger implementation
-│   │   ├── main.c                  # Handoff sequencer logic
-│   │   ├── startup.c               # Custom bare-metal Reset_Handler, .data/.bss unpacker
-│   │   └── string.c
-│   ├── CMakeLists.txt              # Subproject build definition
-│   └── STM32F411XX_BOOTLOADER.ld   # Strict Memory Partition Linker Script
-├── rtos/                           # Real-Time Operating System Microkernel Target
-│   └── CMakeLists.txt
-├── app_template/                   # Decoupled Standalone User App (Planned)
-├── Drivers/                        # Monorepo Shared Hardware Layer
-│   ├── CMSIS/                      # Core ARM Cortex-M4 registers definitions
-│   └── STM32F4xx_HAL_Driver/       # Pure STM32 Low-Layer (LL) driver sources
-├── cmake/
-│   └── gcc-arm-none-eabi.cmake     # Target Toolchain Cross-Compilation Profile
-├── CMakeLists.txt                  # Root Master Orchestration Configuration
-├── CMakePresets.json               # Modern Build Profiles Configuration
-└── LICENSE                         # MIT License
+bootloader/
+├── bootloader.cproject.yml                  # CMSIS-CSolution project configuration
+├── Inc/                                     # Header files
+│   ├── drivers/
+│   │   ├── dma.h                            # DMA driver interface
+│   │   ├── flash.h                          # Internal Flash memory control interface
+│   │   └── uart.h                           # UART driver interface
+│   ├── isr_routine.h                        # Interrupt service routine handlers
+│   ├── load_fw.h                            # Firmware loader state machine & protocol
+│   ├── log.h                                # Lightweight serial logging utility
+│   └── string.h                             # Minimal standalone string utility functions
+├── linker/
+│   └── stm/
+│       └── stm32f411re/
+│           └── STM32F411XX_BOOTLOADER.ld    # Custom linker script for bootloader memory layout
+├── RTE/                                     # Run-Time Environment & CMSIS Device startup files
+│   ├── _Debug_Nucleo-F411RE/
+│   │   └── RTE_Components.h
+│   ├── Device/
+│   │   └── STM32F411RETx/
+│   │       ├── startup_stm32f411xe.S          # Vector table & Reset_Handler assembly
+│   │       ├── startup_stm32f411xe.S.base@2.6.8
+│   │       ├── system_stm32f4xx.c           # System initialization (Clocks, SystemInit)
+│   │       └── system_stm32f4xx.c.base@2.6.8
+│   └── _Release_Nucleo-F411RE/
+│       └── RTE_Components.h
+└── Src/                                     # Source implementation
+    ├── drivers/
+    │   └── stm/
+    │       └── stm32f411re/
+    │           ├── dma.c                    # DMA register setup & handler logic
+    │           ├── flash.c                  # Sector unlock, erase, write sequence
+    │           ├── isr_routine.c            # ISR routines & NVIC handling
+    │           ├── startup.c                # Low-level reset routines
+    │           └── uart.c                   # UART configuration & transmit/receive
+    ├── load_fw.c                            # Application download & Flash writing logic
+    ├── log.c                                # Serial logging implementation
+    └── string.c                             # Lightweight string utility implementation
 ```
 
-## Low-Level Implementation Details
+---
 
-    startup.c (Bootloader): Completely custom hardware entry sequence. Bypasses standard IDE runtime library setups. Initializes physical CPU stacks, maps .data segments from Flash to RAM, zeroes out the .bss section, configures essential clock matrices, and spawns the DMA logging engine before entering main().
+## 🗺️ Memory Map & Architecture
 
-    log.c / dma.c: Features zero-overhead debugging. Text streams are piped out through an asynchronous circular queue mapped to USART2 via DMA Stream transfer, completely avoiding CPU blocking bottlenecks during boot execution.
+The STM32F411RE features **512 KB Flash** and **128 KB SRAM**. The memory map is partitioned between the bootloader and the target application (e.g., FreeRTOS / Bare-Metal App):
 
-    isr_routine.c: Provides absolute register-level encapsulation for specialized interrupt service routines (isr_routine), ensuring non-overlapping execution paths between components.
+| Memory Region | Address Range | Size | Purpose |
+| :--- | :--- | :--- | :--- |
+| **Bootloader Flash** | `0x0800 0000 - 0x0800 3FFF` | 16 KB (Sector 0) | Bootloader execution, initialization, & update logic |
+| **Application Flash** | `0x0800 4000 - 0x0807 FFFF` | ~496 KB (Sectors 1–7) | User Application / RTOS image |
+| **SRAM** | `0x2000 0000 - 0x2002 0000` | 128 KB | Shared RAM / Stack / Heap |
 
-## Developer Experience (DX) & Toolchain Setup
+### Boot Flow Sequence
 
-This environment utilizes modern DevOps workflows designed for zero local host pollution.
-Modern Devcontainers (Docker)
+1. **Power-On / Reset**: Core fetches MSP (Main Stack Pointer) and Reset Handler address from Sector 0 (`0x0800 0000`).
+2. **System Setup**: Clocks and low-level peripherals (UART, DMA, Flash controller) are initialized.
+3. **Firmware Update Check**:
+   - The bootloader listens for incoming update commands over UART.
+   - If a binary stream is detected via `Load_RTOS.py`, Flash sectors starting at `0x0800 4000` are erased, and the incoming image is programmed via DMA/Flash drivers.
+4. **Jump to Application**:
+   - Once validated, the vector table is relocated to `0x0800 4000` via `SCB->VTOR`.
+   - The MSP is set to `*(uint32_t*)0x08004000`.
+   - Bootloader jumps to the application Reset Handler at `*(uint32_t*)0x08004004`.
 
-The workspace ships with a fully pre-packaged .devcontainer configuration.
+---
 
-    You do not need to install gcc-arm-none-eabi, cmake, ninja, or specialized packages to your host machine.
+## 🛠️ Build & Flash Instructions
 
-    Simply open this repository inside VSCode with 'Dev Containers' extension and click "Reopen in Container". VSCode will pull a verified Linux container containing all production-ready embedded cross-compiling toolchains automatically.
+### Prerequisites
 
-## Automation via VS Code Tasks
+- **Toolchain**: `arm-none-eabi-gcc` (Arm GNU Toolchain)
+- **Build System**: CMSIS-CSolution / `cbuild` (Open-CMSIS-Pack) or VS Code Arm environment
+- **Python**: Python 3.x with `pyserial` installed (`pip install pyserial argparse`)
+- **Hardware**: NUCLEO-F411RE board with USB-UART connection.
 
-The repository comes equipped with automated tasks.json pipelines. You can trigger them directly within VS Code (Ctrl+Shift+B or via Command Palette):
+### 1. Build using VS Code Tasks
 
-    Building release binary: Configures and compiles the entire codebase using the modern CMake Release preset.
+The project is configured with automated **VS Code Tasks** matching `.cproject.yml`:
 
-    Building debug binary: Configures and compiles the system with the Debug preset, preserving full symbol tables for debugging.
+1. Open the repository in VS Code.
+2. Press `Ctrl+Shift+B` (or `Cmd+Shift+B` on macOS) to execute the default build task.
+3. Select between `Debug` and `Release` configurations.
 
-    Launch bootloader with OpenOCD (ST-Link): Builds the project and automatically flashes the resulting STM_bootloader.elf directly to the Nucleo board over an ST-Link debugger interface using OpenOCD.
+Alternatively, build via command line using `cbuild`:
 
-## Hardware Debugging
+```bash
+cbuild bootloader.cproject.yml --configuration Release
+```
 
-Right now, hardware step-by-step zapping and memory inspection are fully supported via the Cortex-Debug extension in VS Code. Since the project is in its foundational phase, debugging targets the Bootloader workflow to safely observe low-level register setups, clock configurations, and DMA log generation.
-🚀 Future Roadmap
+### 2. Loading Target Firmware via Python Host Utility
 
-Contributions are what make the open-source community amazing. Here is what is actively planned for implementation:
+To flash an application binary (e.g., FreeRTOS image) through the bootloader:
 
-    [ ] Priority Scheduler Consolidation: Transition Kernel scheduling matrices to use explicit priority hierarchies inside task_struct.
+```bash
+python Load_RTOS.py --port /dev/ttyUSB0 --baud 115200 --file /home/stanislav/Projects/STM_bootloader/out/rtos/Nucleo-F411RE/Release/rtos.bin
+```
 
-    [ ] Hardware MPU Sandboxing: Activate the ARM Cortex-M4 Memory Protection Unit (MPU) to prevent Application threads from modifying RTOS kernel RAM regions.
+#### CLI Parameters:
+- `--port`: Serial port assigned to the NUCLEO board (e.g., `/dev/ttyUSB0` or `COM3`).
+- `--baud`: UART baud rate (default: `115200`).
+- `--file`: Absolute or relative path to target application `.bin` file.
 
-    [ ] Unified System Call API: Standardize the raw assembly SVC system routing backend mapping application requests to Kernel services.
+---
 
-    [ ] UART Host Programming Scripts (/tools): Finalize production python scripting utilities to cleanly push separate application binaries down UART lines by triggering hardware pin configurations.
+## 🔬 Key Low-Level Implementation Highlights
 
-    [ ] FOTA (Firmware Over-The-Air): Implement a safe, fault-tolerant dual-bank flash swapping mechanism into the Bootloader routine.
+- **Custom Linker Script (`STM32F411XX_BOOTLOADER.ld`)**:
+  Defines custom section memory mappings (`.text`, `.rodata`, `.data`, `.bss`), stack positioning, and explicit boundary symbols used by `startup.c` to clear `.bss` and copy initialized data from Flash to SRAM.
 
-## 📄 License
+- **Direct Register Manipulation**:
+  Driver implementations interact directly with STM32 peripheral control registers (RCC, USART, DMA, FLASH) through base addresses and bitwise operations, bypassing generic HAL abstraction layers for minimal binary footprint and high performance.
 
-This ecosystem is distributed entirely under the MIT License. Check out the LICENSE file for full permission boundaries. Feel free to copy, tweak, or deploy any portion of this low-level architecture for your own projects!
+- **Reliable Flash In-Application Programming (IAP)**:
+  Handles sector unlocking key sequences (`0x45670123`, `0xCDEF89AB`), status register polling (`FLASH_SR_BSY`), and half-word/word programming sequences safely.
+
+---
+
+## 🧪 Hardware Verification
+
+- **Board**: STMicroelectronics NUCLEO-F411RE
+- **MCU**: STM32F411RET6 (Cortex-M4 @ 100MHz, 512KB Flash, 128KB SRAM)
+- **Test Status**: Fully tested and verified. Application firmware successfully transferred, flashed, and executed via bootloader jump mechanism.
+
+---
+
+## 👤 Author & Portfolio Notice
+
+This project was conceived, engineered, and tested independently as a personal embedded software engineering portfolio project. It serves as a demonstration of bare-metal ARM Cortex-M architecture understanding, low-level firmware design, memory management, and hardware protocol integration.
